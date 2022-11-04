@@ -18,6 +18,7 @@ class ButtonWithIcon extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 36.0),
       child: SizedBox(
         width: double.infinity,
+        height: 50.0,
         child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
                 backgroundColor: color,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:vocabulary_notebook/parts/button_with_icon.dart';
 
+import ' word_list_screen.dart';
+import 'test_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -9,6 +12,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool isIncludedMemorizedWords = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,24 +30,30 @@ class _HomeScreenState extends State<HomeScreen> {
             thickness: 1.0,
           ),
           // 確認テストをするボタン
+          const SizedBox(height: 20.0),
           ButtonWithIcon(
-            onPressed: () => print("確認テスト"), //TODO
+            onPressed: () => startTestScreen(context), //TODO
             icon: const Icon(Icons.play_arrow),
             label: "確認テストをする",
             color: Colors.brown,
           ),
+          const SizedBox(height: 10.0),
           // TODO ラジオボタン
+          const SizedBox(height: 20.0),
           _radioButtons(),
           // TODO 単語一覧を見るボタン
+          const SizedBox(height: 20.0),
           ButtonWithIcon(
-              onPressed: () => print("単語一覧"),
+              onPressed: () => _startWordListScreen(context),
               icon: const Icon(Icons.list),
               label: "単語一覧を見る",
               color: Colors.grey),
+          const SizedBox(height: 60.0),
           const Text(
             "created by Shintaro",
             style: TextStyle(fontFamily: "Mont"),
-          )
+          ),
+          const SizedBox(height: 16.0),
         ],
       )),
     );
@@ -67,25 +78,46 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.only(left: 50.0),
       child: Column(
-        children: const [
+        children: [
           RadioListTile(
-              title: Text(
+              title: const Text(
                 "暗記済みの単語を除外する",
                 style: TextStyle(fontSize: 16.0),
               ),
-              value: null,
-              groupValue: null,
-              onChanged: null),
+              value: false,
+              groupValue: isIncludedMemorizedWords,
+              onChanged: (value) => _onRadioSelected(value)),
           RadioListTile(
-              title: Text(
+              title: const Text(
                 "暗記済みの単語を含む",
                 style: TextStyle(fontSize: 16.0),
               ),
-              value: null,
-              groupValue: null,
-              onChanged: null)
+              value: true,
+              groupValue: isIncludedMemorizedWords,
+              onChanged: (value) => _onRadioSelected(value))
         ],
       ),
     );
+  }
+
+  _onRadioSelected(value) {
+    setState(() {
+      isIncludedMemorizedWords = value;
+      print("$valueが選ばれたデー");
+    });
+  }
+
+  _startWordListScreen(BuildContext context) {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => WordListScreen()));
+  }
+
+  startTestScreen(BuildContext context) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => TestScreen(
+                  isIncludedMemorizedWords: isIncludedMemorizedWords,
+                )));
   }
 }
