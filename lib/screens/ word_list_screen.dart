@@ -25,6 +25,13 @@ class _WordListScreenState extends State<WordListScreen> {
         appBar: AppBar(
           title: const Text("単語一覧"),
           centerTitle: true,
+          actions: [
+            IconButton(
+              onPressed: () => _sortWords(),
+              icon: Icon(Icons.sort),
+              tooltip: "暗記済みの単語を下になるようにソート",
+            )
+          ],
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _addNewWord(),
@@ -62,23 +69,45 @@ class _WordListScreenState extends State<WordListScreen> {
     return Card(
       elevation: 10.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-      color: Colors.blueGrey.shade700,
+      color: Colors.blueGrey.shade500,
       child: ListTile(
         title: Text("${_wordList[position].strQuestion}"),
         subtitle: Text(
           "${_wordList[position].strAnswer}",
-          style: TextStyle(fontFamily: "Mont"),
+          style: const TextStyle(fontFamily: "Mont"),
         ),
+        trailing: (_wordList[position].isMemorized != null &&
+                _wordList[position].isMemorized)
+            ? const Icon(Icons.check_circle)
+            : null,
         onTap: () => _editWord(_wordList[position]),
         onLongPress: () => _deleteWord(_wordList[position]),
       ),
     );
   }
 
-  _deleteWord(Word selectWord) async {
-    await database.deleteWord(selectWord);
-    Fluttertoast.showToast(msg: "削除が完了しました", toastLength: Toast.LENGTH_LONG);
-    _getAllWords();
+  _deleteWord(Word selectedWord) async {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => AlertDialog(
+              title: Text(selectedWord.strQuestion),
+              content: const Text("削除してもいいですか"),
+              actions: [
+                TextButton(
+                    onPressed: () async {
+                      await database.deleteWord(selectedWord);
+                      Fluttertoast.showToast(
+                          msg: "削除が完了しました", toastLength: Toast.LENGTH_LONG);
+                      _getAllWords();
+                      Navigator.pop(context);
+                    },
+                    child: const Text("はい")),
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("いいえ"))
+              ],
+            ));
   }
 
   _editWord(Word selectedWord) {
@@ -89,5 +118,10 @@ class _WordListScreenState extends State<WordListScreen> {
                   status: EditStatus.EDIT,
                   word: selectedWord,
                 )));
+  }
+
+  _sortWords() async {
+    _wordList = await database.allWordsSorted;
+    setState(() {});
   }
 }

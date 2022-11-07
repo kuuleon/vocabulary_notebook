@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:vocabulary_notebook/main.dart';
 
 import '../db/database.dart';
@@ -16,8 +17,8 @@ class TestScreen extends StatefulWidget {
 
 class _TestScreenState extends State<TestScreen> {
   int _numberOfQuestion = 0;
-  String _txtQuestion = "test"; //todo
-  String _txtAnswer = "test answer"; //todo
+  String _txtQuestion = "";
+  String _txtAnswer = "";
   bool _isMemorized = false;
 
   bool _isQuestionCardVisble = false;
@@ -59,41 +60,49 @@ class _TestScreenState extends State<TestScreen> {
   @override
   Widget build(BuildContext context) {
     var isInclude = widget.isIncludedMemorizedWords;
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("確認テスト"),
-          centerTitle: true,
-        ),
-        floatingActionButton: (_isFabVisble && _testDataList.isNotEmpty)
-            ? FloatingActionButton(
-                onPressed: () => goNextStatus(),
-                tooltip: "次に進む", //todo
-                child: const Icon(Icons.skip_next),
-              )
-            : null,
-        body: Column(
-          children: [
-            const SizedBox(
-              height: 20.0,
-            ),
-            _numberOfQuestionsPart(),
-            const SizedBox(
-              height: 40.0,
-            ),
-            _questionCardPart(),
-            const SizedBox(
-              height: 20.0,
-            ),
-            _answerCardPart(),
-            const SizedBox(
-              height: 20.0,
-            ),
-            _isMemorizedCheckPart(),
-          ],
-        ));
+    return WillPopScope(
+      onWillPop: () => _finishTestScreen(),
+      child: Scaffold(
+          appBar: AppBar(
+            title: Text("確認テスト"),
+            centerTitle: true,
+          ),
+          floatingActionButton: (_isFabVisble && _testDataList.isNotEmpty)
+              ? FloatingActionButton(
+                  onPressed: () => goNextStatus(),
+                  tooltip: "次に進む",
+                  child: const Icon(Icons.skip_next),
+                )
+              : null,
+          body: Stack(
+            children: [
+              Column(
+                children: [
+                  const SizedBox(
+                    height: 20.0,
+                  ),
+                  _numberOfQuestionsPart(),
+                  const SizedBox(
+                    height: 40.0,
+                  ),
+                  _questionCardPart(),
+                  const SizedBox(
+                    height: 20.0,
+                  ),
+                  _answerCardPart(),
+                  const SizedBox(
+                    height: 20.0,
+                  ),
+                  _isMemorizedCheckPart(),
+                ],
+              ),
+              _endMessage()
+            ],
+          )),
+    );
   }
 
-  //todo 残り問題数表示部分
+  //残り問題数表示部分
   Widget _numberOfQuestionsPart() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -164,6 +173,20 @@ class _TestScreenState extends State<TestScreen> {
     }
   }
 
+  // テスト終了メッセージ
+  Widget _endMessage() {
+    if (_testStatus == TestStatus.FINISHED) {
+      return const Center(
+        child: Text(
+          "テスト終了",
+          style: TextStyle(fontSize: 50.0),
+        ),
+      );
+    } else {
+      return Container();
+    }
+  }
+
   goNextStatus() async {
     switch (_testStatus) {
       case TestStatus.BEFORE_START:
@@ -177,9 +200,13 @@ class _TestScreenState extends State<TestScreen> {
       case TestStatus.SHOW_ANSWER:
         await _updateMemorizedFlag();
         if (_numberOfQuestion <= 0) {
-          _testStatus = TestStatus.FINISHED;
+          setState(() {
+            _isFabVisble = false;
+            _testStatus = TestStatus.FINISHED;
+          });
         } else {
           _testStatus = TestStatus.SHOW_QUESTION;
+          _showQuestion();
         }
         break;
       case TestStatus.FINISHED:
@@ -218,5 +245,28 @@ class _TestScreenState extends State<TestScreen> {
         isMemorized: _isMemorized);
     await database.updateWord(updateWord);
     print(updateWord.toString());
+  }
+
+  Future<bool> _finishTestScreen() async {
+    return await showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+                  title: const Text("テスト終了"),
+                  content: const Text("テストを終了してもいいですか？"),
+                  actions: [
+                    TextButton(
+                      child: const Text("はい"),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      },
+                    ),
+                    TextButton(
+                      child: const Text("いいえ"),
+                      onPressed: () => Navigator.pop(context),
+                    )
+                  ],
+                )) ??
+        false;
   }
 }

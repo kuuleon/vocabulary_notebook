@@ -32,16 +32,19 @@ class _HomeScreenState extends State<HomeScreen> {
           // 確認テストをするボタン
           const SizedBox(height: 20.0),
           ButtonWithIcon(
-            onPressed: () => startTestScreen(context), //TODO
+            onPressed: () => startTestScreen(context),
             icon: const Icon(Icons.play_arrow),
             label: "確認テストをする",
             color: Colors.brown,
           ),
           const SizedBox(height: 10.0),
-          // TODO ラジオボタン
+          // ラジオボタン
+          // const SizedBox(height: 20.0),
+          // _radioButtons(),
+          // 切り替えトグル
           const SizedBox(height: 20.0),
-          _radioButtons(),
-          // TODO 単語一覧を見るボタン
+          _swich(),
+          // 単語一覧を見るボタン
           const SizedBox(height: 20.0),
           ButtonWithIcon(
               onPressed: () => _startWordListScreen(context),
@@ -96,6 +99,22 @@ class _HomeScreenState extends State<HomeScreen> {
               groupValue: isIncludedMemorizedWords,
               onChanged: (value) => _onRadioSelected(value))
         ],
+      ),
+    );
+  }
+
+  Widget _swich() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: SwitchListTile(
+        title: const Text("暗記済みの単語を含む"),
+        value: isIncludedMemorizedWords,
+        onChanged: (value) {
+          setState(() {
+            isIncludedMemorizedWords = value;
+          });
+        },
+        secondary: const Icon(Icons.sort),
       ),
     );
   }
